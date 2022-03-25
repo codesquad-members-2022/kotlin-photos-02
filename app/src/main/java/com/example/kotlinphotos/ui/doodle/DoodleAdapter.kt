@@ -25,6 +25,7 @@ import java.net.URL
 
 class DoodleAdapter(
     diffCallback: DiffUtil.ItemCallback<Photo>,
+    private val clickListener: Clickable,
     private val saveListener: OnSaveListener
 ) : ListAdapter<Photo, DoodleAdapter.DoodleViewHolder>(diffCallback) {
 
@@ -35,40 +36,38 @@ class DoodleAdapter(
     }
 
     override fun onBindViewHolder(holder: DoodleViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), position)
     }
 
     inner class DoodleViewHolder(private val binding: ItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-
-        fun bind(photo: Photo) {
+        fun bind(photo: Photo, position: Int) {
+            binding.photo = photo
             CoroutineScope(Dispatchers.Main).launch {
-                with(binding) {
-                    binding.photo = photo
-                    when (photo.mode) {
-                        EDIT -> checkboxSelect.visibility = View.VISIBLE
-                        READ -> checkboxSelect.visibility = View.INVISIBLE
-                    }
-                    checkboxSelect.setOnCheckedChangeListener(null)
-                    checkboxSelect.isChecked = photo.isChecked
-                    checkboxSelect.setOnCheckedChangeListener { _, value ->
-                        photo.isChecked = value
-                    }
-                }
+                val bitmap = loadImage(photo.imageUrl)
+                binding.viewPhoto.setImageBitmap(bitmap)
             }
+
             itemView.setOnLongClickListener {
-                for (current in currentList) {
-                    current.mode = EDIT
-                }
+                clickListener.onLongClick()
+                saveListener.showSaveButton()
                 false
             }
+
             itemView.setOnClickListener {
-                if (photo.mode == EDIT) {
-                    photo.isChecked = true
-                    saveListener.showSaveButton()
-                    notifyDataSetChanged()
-                }
+                clickListener.onClick(position)
+                notifyDataSetChanged()
             }
+        }
+    }
+
+    suspend fun loadImage(imageUrl: String): Bitmap? {
+        return withContext(Dispatchers.IO) {
+            kotlin.runCatching {
+                val url = URL(imageUrl)
+                val stream = url.openStream()
+                BitmapFactory.decodeStream(stream)
+            }.getOrNull()
         }
     }
 
