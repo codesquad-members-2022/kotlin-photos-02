@@ -3,9 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+
         <variable
             name="photo"
             type="com.example.kotlinphotos.model.Photo" />
+
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -14,7 +16,6 @@
         android:layout_margin="10dp">
 
         <ImageView
-            imageUrl="@{photo.imageUrl}"
             android:id="@+id/view_photo"
             android:layout_width="100dp"
             android:layout_height="100dp"
@@ -26,10 +27,12 @@
 
         <CheckBox
             android:id="@+id/checkbox_select"
+            check="@{photo.mode}"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:background="@drawable/selector_checkbox"
             android:button="@null"
+            android:checked="@{photo.checked}"
             android:visibility="invisible"
             app:layout_constraintStart_toStartOf="@id/view_photo"
             app:layout_constraintTop_toTopOf="@id/view_photo" />
